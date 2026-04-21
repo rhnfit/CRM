@@ -9,6 +9,10 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # Prisma CLI needs DATABASE_URL (schema uses env("DATABASE_URL")) even though
+    # validate/generate do not connect to a real DB. CI has no .env file.
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci?schema=public
     defaults:
       run:
         working-directory: backend
