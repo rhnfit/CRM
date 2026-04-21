@@ -7,7 +7,7 @@
     "start:dev": "nest start --watch",
     "build": "nest build",
     "lint": "eslint \"src/**/*.ts\"",
-    "verify": "npx prisma validate && npm run lint && npx tsc --noEmit && npm run build",
+    "verify": "npx prisma validate && npx prisma generate && npm run lint && npx tsc --noEmit && npm run build",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed"
@@ -30,7 +30,7 @@
     "@nestjs/schedule": "^4.1.1",
     "@nestjs/throttler": "^6.2.1",
     "@nestjs/websockets": "^10.4.2",
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.26.2",
     "class-transformer": "^0.5.1",
