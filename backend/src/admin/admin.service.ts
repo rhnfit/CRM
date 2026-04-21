@@ -31,10 +31,10 @@ export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
   private departmentsInScope(actor: AuthUser): Department[] | null {
-    if (actor.role === Role.DIRECTOR) {
+    if (actor.role === Role.SUPER_ADMIN) {
       return null;
     }
-    if (actor.role === Role.MANAGER) {
+    if (actor.role === Role.ADMIN) {
       return [actor.department];
     }
     if (actor.role === Role.SALES_HEAD) {
@@ -56,9 +56,9 @@ export class AdminService {
     }
   }
 
-  private assertCanAssignDirector(actor: AuthUser, role: Role) {
-    if (role === Role.DIRECTOR && actor.role !== Role.DIRECTOR) {
-      throw new ForbiddenException('Only a Director can assign the Director role');
+  private assertCanAssignSuperAdmin(actor: AuthUser, role: Role) {
+    if (role === Role.SUPER_ADMIN && actor.role !== Role.SUPER_ADMIN) {
+      throw new ForbiddenException('Only an Owner (Super Admin) can assign the Owner role');
     }
   }
 
@@ -114,7 +114,7 @@ export class AdminService {
 
   async createUser(actor: AuthUser, dto: AdminCreateUserDto) {
     this.assertDepartmentAllowed(actor, dto.department);
-    this.assertCanAssignDirector(actor, dto.role);
+    this.assertCanAssignSuperAdmin(actor, dto.role);
 
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) {
@@ -151,7 +151,7 @@ export class AdminService {
       this.assertDepartmentAllowed(actor, dto.department);
     }
     if (dto.role) {
-      this.assertCanAssignDirector(actor, dto.role);
+      this.assertCanAssignSuperAdmin(actor, dto.role);
     }
 
     const { password, ...rest } = dto;

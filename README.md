@@ -22,7 +22,7 @@ CRM/
       auth/                    JWT login/register, /users/me, /users/assignable
       common/                  Decorators + guards (roles, current user)
       users/                   Hierarchy-aware access
-      admin/                   Director/Manager/Heads-only: users, teams, stats, audit
+      admin/                   Owner/Admin/Heads-only: users, teams, stats, audit
       leads/                   CRUD + round-robin assign + detail
       tickets/                 CRUD + detail
       activities/              Timeline + notes
@@ -97,19 +97,19 @@ API listens on **http://localhost:4000**; the app on **http://localhost:3000**. 
 - Sales: `GET|POST /sales`
 - Targets: `GET|POST /targets`
 - Incentives: `GET /incentives`, `POST /incentives/compute` (`{ "month": "2026-04" }`)
-- Reports: `GET /reports/overview`
+- Reports: `GET /reports/overview`, `GET /reports/comparison` (period vs previous window)
 - Teams (CRM): `GET /teams`
 - Integrations: `GET|POST /integrations/whatsapp/webhook`, `POST /integrations/calls`
 
 ## Access model
 
-- `DIRECTOR` — all data, all admin.
-- `MANAGER` — own department only.
-- `SALES_HEAD`, `SUPPORT_HEAD` — that department.
-- `TEAM_LEADER` — own team.
-- `AGENT` — self only.
+- **`SUPER_ADMIN` (Owner)** — full company data and admin; not tied to a sales/support “team” in the UI.
+- **`ADMIN`** — administrative scope within their **department** (operations-style admin).
+- **`SALES_HEAD`**, **`SUPPORT_HEAD`** — that department.
+- **`TEAM_LEADER`** — own team (department + team); UI labels as Sales / Support Team Lead by department.
+- **`AGENT`** — self only; UI labels as Sales Agent / Support Agent by department.
 
-All read queries filter by `assignedTo IN accessibleUserIds`. Admin mutation APIs also enforce department scope and never allow a non-Director to grant `DIRECTOR`.
+All read queries filter by `assignedTo IN accessibleUserIds`. Admin mutations enforce department scope; only **Owner** (`SUPER_ADMIN`) can grant the Owner role.
 
 ## Realtime
 
@@ -157,11 +157,13 @@ Run `npx prisma db seed` (from `backend/`, or via Docker as above) so these user
 
 | Role | Email | Password |
 |------|-------|----------|
-| Director | `director@rhn.local` | `ChangeMe123!` |
+| Owner (Super Admin) | `director@rhn.local` | `ChangeMe123!` |
 | Sales agent | `agent@rhn.local` | `AgentPass123!` |
 | Support agent | `support@rhn.local` | `SupportPass123!` |
 
-**Director account:** You can set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` **before** `npx prisma db seed`. The seed uses them for the director user (defaults are the email/password in the first row above). Agent and support passwords are fixed in `prisma/seed.ts` unless you change the seed script.
+**Owner account:** You can set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` **before** `npx prisma db seed`. The seed creates the **Owner** user with role `SUPER_ADMIN`. Agent and support passwords are fixed in `prisma/seed.ts` unless you change the seed script.
+
+**Android / calls:** see [MOBILE-APP.md](./MOBILE-APP.md) for phased roadmap (recording has legal and OS constraints).
 
 **Frontend:** Set `NEXT_PUBLIC_API_URL` in `frontend/.env.local` to your API base (e.g. `http://localhost:4000`) so the browser can reach the backend; `backend/.env` should list the same origins in `CORS_ORIGIN` for your dev ports.
 

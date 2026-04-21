@@ -43,7 +43,7 @@ export class PipelineService {
     if (!me) throw new ForbiddenException();
 
     const where: Prisma.PipelineWhereInput =
-      me.role === Role.DIRECTOR
+      me.role === Role.SUPER_ADMIN
         ? {}
         : {
             OR: [
@@ -220,7 +220,7 @@ export class PipelineService {
       select: { id: true, teamId: true, isDefault: true },
     });
     if (!pipeline) throw new NotFoundException('Pipeline not found');
-    if (user.role === Role.DIRECTOR) return;
+    if (user.role === Role.SUPER_ADMIN) return;
     if (pipeline.isDefault && !pipeline.teamId) return;
     if (pipeline.teamId) {
       const me = await this.prisma.user.findUnique({

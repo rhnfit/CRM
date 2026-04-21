@@ -13,7 +13,7 @@ import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.DIRECTOR, Role.MANAGER, Role.SALES_HEAD, Role.SUPPORT_HEAD)
+@Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.SALES_HEAD, Role.SUPPORT_HEAD)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 

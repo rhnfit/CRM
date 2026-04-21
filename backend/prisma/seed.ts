@@ -20,15 +20,15 @@ async function main() {
   const director = await prisma.user.upsert({
     where: { email },
     create: {
-      name: 'System Director',
+      name: 'System Owner',
       email,
       passwordHash,
-      role: Role.DIRECTOR,
+      role: Role.SUPER_ADMIN,
       department: Department.SALES,
     },
     update: {
       passwordHash,
-      role: Role.DIRECTOR,
+      role: Role.SUPER_ADMIN,
     },
   });
 
@@ -211,7 +211,7 @@ async function main() {
   }
 
   console.log('Seed complete.');
-  console.log(`  Director: ${email} / ${password}`);
+  console.log(`  Owner: ${email} / ${password}`);
   console.log(`  Agent:    ${agentEmail} / AgentPass123!`);
   console.log(`  Support:  ${supportEmail} / SupportPass123!`);
 }

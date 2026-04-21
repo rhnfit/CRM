@@ -59,8 +59,8 @@ export default function AdminOverviewPage() {
     <div>
       <h1 className="mb-2 text-4xl font-semibold text-ink">Overview</h1>
       <p className="mb-8 max-w-2xl text-slate-500">
-        Counts respect your role: Directors see everything; Managers and Heads see their
-        department only.
+        Counts respect your role: Owners see the full company; Admins and Heads see their
+        scoped department or team.
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (

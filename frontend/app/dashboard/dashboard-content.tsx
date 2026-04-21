@@ -12,6 +12,7 @@ import { FadeUp } from '../../components/ui/motion';
 import { KpiWidget } from '../../components/ui/kpi-widget';
 import { SkeletonKpiGrid } from '../../components/ui/skeleton';
 import { apiFetch, getToken } from '../../lib/api';
+import { formatRoleLabel } from '../../lib/roles';
 
 type DashboardType = 'SALES' | 'SUPPORT' | 'TEAM';
 type DateRangePreset =
@@ -594,7 +595,7 @@ export default function DashboardContent() {
                     <Card key={agent.id} interactive className="space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-slate-500">#{index + 1} {agent.role}</p>
+                          <p className="text-xs uppercase tracking-wide text-slate-500">#{index + 1} {formatRoleLabel(agent.role, agent.department)}</p>
                           <h3 className="text-lg font-semibold">{agent.name}</h3>
                         </div>
                         <p className="rounded-full bg-brand-muted px-3 py-1 text-xs font-medium text-brand">

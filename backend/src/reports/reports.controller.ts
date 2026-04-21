@@ -15,6 +15,12 @@ export class ReportsController {
     return this.reportsService.overview(user, query);
   }
 
+  /** Current vs previous period (same filters as overview). For Owners / Heads / scoped admins. */
+  @Get('comparison')
+  comparison(@CurrentUser() user: AuthUser, @Query() query: QueryDashboardDto) {
+    return this.reportsService.comparison(user, query);
+  }
+
   @Get('revenue-timeline')
   revenueTimeline(@CurrentUser() user: AuthUser, @Query() query: QueryDashboardDto) {
     return this.reportsService.revenueTimeline(user, query);

@@ -26,7 +26,7 @@ export default function LoginPage() {
         json: { email, password },
       });
       setToken(res.accessToken);
-      const adminRoles = new Set(['DIRECTOR', 'MANAGER', 'SALES_HEAD', 'SUPPORT_HEAD']);
+      const adminRoles = new Set(['SUPER_ADMIN', 'ADMIN', 'SALES_HEAD', 'SUPPORT_HEAD']);
       const dest = adminRoles.has(res.user.role) ? '/admin' : '/dashboard';
       router.push(dest);
       router.refresh();

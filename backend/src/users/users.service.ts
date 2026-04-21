@@ -42,12 +42,12 @@ export class UsersService {
     const baseSelect = { id: true };
     const activeOnly = { isActive: true };
 
-    if (user.role === Role.DIRECTOR) {
+    if (user.role === Role.SUPER_ADMIN) {
       const users = await this.prisma.user.findMany({ where: activeOnly, select: baseSelect });
       return users.map((u) => u.id);
     }
 
-    if (user.role === Role.MANAGER) {
+    if (user.role === Role.ADMIN) {
       const users = await this.prisma.user.findMany({
         where: { department: user.department, ...activeOnly },
         select: baseSelect,
@@ -79,8 +79,8 @@ export class UsersService {
   }
 
   getCrmDepartments(user: AuthUser): Department[] | null {
-    if (user.role === Role.DIRECTOR) return null;
-    if (user.role === Role.MANAGER) return [user.department];
+    if (user.role === Role.SUPER_ADMIN) return null;
+    if (user.role === Role.ADMIN) return [user.department];
     if (user.role === Role.SALES_HEAD) return [Department.SALES];
     if (user.role === Role.SUPPORT_HEAD) return [Department.SUPPORT];
     return [user.department];

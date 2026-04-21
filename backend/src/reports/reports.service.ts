@@ -195,6 +195,53 @@ export class ReportsService {
     return this.overviewForIds(ids, from, to);
   }
 
+  /** Same filters as overview; compares selected window to the immediately preceding window of equal length. */
+  private previousPeriod(from: Date, to: Date): { from: Date; to: Date } {
+    const len = to.getTime() - from.getTime();
+    const prevTo = new Date(from.getTime() - 1);
+    const prevFrom = new Date(prevTo.getTime() - len);
+    return { from: prevFrom, to: prevTo };
+  }
+
+  private deltaPct(current: number, previous: number): number | null {
+    if (previous === 0) return current === 0 ? 0 : null;
+    return ((current - previous) / previous) * 100;
+  }
+
+  async comparison(user: AuthUser, query: QueryDashboardDto = {}) {
+    const userRows = await this.getFilteredUserIds(user, query);
+    const ids = userRows.map((u) => u.id);
+    const { from, to } = this.getDateWindow(query);
+    const { from: pFrom, to: pTo } = this.previousPeriod(from, to);
+    if (ids.length === 0) {
+      const empty = this.emptyOverview();
+      return {
+        current: empty,
+        previous: empty,
+        period: { from: from.toISOString(), to: to.toISOString() },
+        previousPeriod: { from: pFrom.toISOString(), to: pTo.toISOString() },
+        deltas: null,
+      };
+    }
+    const [current, previous] = await Promise.all([
+      this.overviewForIds(ids, from, to),
+      this.overviewForIds(ids, pFrom, pTo),
+    ]);
+    return {
+      current,
+      previous,
+      period: { from: from.toISOString(), to: to.toISOString() },
+      previousPeriod: { from: pFrom.toISOString(), to: pTo.toISOString() },
+      deltas: {
+        revenuePct: this.deltaPct(current.revenue, previous.revenue),
+        leadsPct: this.deltaPct(current.totalLeads, previous.totalLeads),
+        conversionRatePts: current.conversionRate - previous.conversionRate,
+        ticketsPct: this.deltaPct(current.totalTicketsInPeriod, previous.totalTicketsInPeriod),
+        slaBreachesDelta: current.slaBreaches - previous.slaBreaches,
+      },
+    };
+  }
+
   private async revenueTimelineForIds(ids: string[], from: Date, to: Date) {
     const sales = await this.prisma.sale.findMany({
       where: {

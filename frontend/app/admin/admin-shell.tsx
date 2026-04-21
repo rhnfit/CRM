@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { RhnLogo } from '../../components/rhn-logo';
 import { ADMIN_ROLES, apiFetch, clearToken, getToken, logout as apiLogout, MeUser } from '../../lib/api';
+import { formatRoleLabel } from '../../lib/roles';
 
 const nav = [
   { href: '/admin', label: 'Overview' },
@@ -65,7 +66,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <RhnLogo size="sm" className="mb-3" />
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">RHN Admin</p>
             <p className="truncate text-lg font-semibold text-ink">{me.name}</p>
-            <p className="truncate text-xs text-slate-500">{me.role} · {me.department}</p>
+            <p className="truncate text-xs text-slate-500">{formatRoleLabel(me.role, me.department)} · {me.department}</p>
           </div>
           <nav className="space-y-1.5">
             {nav.map((item) => {

@@ -101,7 +101,7 @@ export async function logout(): Promise<void> {
   }
 }
 
-export const ADMIN_ROLES = new Set(['DIRECTOR', 'MANAGER', 'SALES_HEAD', 'SUPPORT_HEAD']);
+export const ADMIN_ROLES = new Set(['SUPER_ADMIN', 'ADMIN', 'SALES_HEAD', 'SUPPORT_HEAD']);
 
 export type MeUser = {
   id: string;

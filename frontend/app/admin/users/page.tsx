@@ -5,8 +5,9 @@ import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { SlideOver } from '../../../components/ui/slide-over';
 import { apiFetch, MeUser } from '../../../lib/api';
+import { ROLE_LABELS } from '../../../lib/roles';
 
-const ROLES = ['DIRECTOR', 'MANAGER', 'SALES_HEAD', 'SUPPORT_HEAD', 'TEAM_LEADER', 'AGENT'] as const;
+const ROLES = ['SUPER_ADMIN', 'ADMIN', 'SALES_HEAD', 'SUPPORT_HEAD', 'TEAM_LEADER', 'AGENT'] as const;
 const DEPTS = ['SALES', 'SUPPORT'] as const;
 
 type Team = { id: string; name: string; department: string };
@@ -125,7 +126,7 @@ export default function AdminUsersPage() {
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>
-                  {r}
+                  {ROLE_LABELS[r] ?? r}
                 </option>
               ))}
             </select>
@@ -177,7 +178,7 @@ export default function AdminUsersPage() {
                       >
                         {ROLES.map((r) => (
                           <option key={r} value={r}>
-                            {r}
+                            {ROLE_LABELS[r] ?? r}
                           </option>
                         ))}
                       </select>

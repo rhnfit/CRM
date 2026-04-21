@@ -9,7 +9,7 @@ import { AutomationService } from './automation.service';
 
 @Controller('automation')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.DIRECTOR, Role.MANAGER, Role.SALES_HEAD, Role.SUPPORT_HEAD)
+@Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.SALES_HEAD, Role.SUPPORT_HEAD)
 export class AutomationController {
   constructor(private readonly automation: AutomationService) {}
 

@@ -8,8 +8,8 @@ datasource db {
 }
 
 enum Role {
-  DIRECTOR
-  MANAGER
+  SUPER_ADMIN
+  ADMIN
   SALES_HEAD
   SUPPORT_HEAD
   TEAM_LEADER
