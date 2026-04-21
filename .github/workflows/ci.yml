@@ -4,6 +4,8 @@ name: CI
 # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Must be quoted: unquoted URLs break YAML parsing so DATABASE_URL is not set.
+  DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:5432/ci?schema=public'
 
 on:
   push:
@@ -14,10 +16,6 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    # Prisma CLI needs DATABASE_URL (schema uses env("DATABASE_URL")) even though
-    # validate/generate do not connect to a real DB. CI has no .env file.
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci?schema=public
     defaults:
       run:
         working-directory: backend
@@ -29,7 +27,10 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
-      - run: npm run verify
+      - name: Verify backend
+        run: npm run verify
+        env:
+          DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:5432/ci?schema=public'
 
   frontend:
     runs-on: ubuntu-latest
