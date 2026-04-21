@@ -170,6 +170,7 @@ Run `npx prisma db seed` (from `backend/`, or via Docker as above) so these user
 - **Local / pre-merge gate:** from the repo root, run `npm run verify` (Prisma validate, lint, typecheck, and production builds for backend and frontend).
 - **GitHub Actions:** pushes and PRs to `main` / `master` run `.github/workflows/ci.yml` (same checks on clean Linux runners).
 - **Step-by-step production checklist:** see [DEPLOYMENT.md](./DEPLOYMENT.md) (env vars, migrations, hosting pattern, backups).
+- **Cloud smoke test (Vercel + API host, realtime):** see [CLOUD-TEST.md](./CLOUD-TEST.md).
 
 ## Status
 

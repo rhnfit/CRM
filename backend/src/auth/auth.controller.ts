@@ -42,19 +42,26 @@ export class AuthController {
     return { ok: true };
   }
 
+  private cookieSameSite(): 'lax' | 'strict' | 'none' {
+    const raw = this.config.get<string>('COOKIE_SAME_SITE')?.toLowerCase().trim();
+    if (raw === 'none' || raw === 'strict' || raw === 'lax') return raw;
+    return 'lax';
+  }
+
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
     const secure = this.config.get<string>('NODE_ENV') === 'production';
+    const sameSite = this.cookieSameSite();
     res.cookie('crm_at', accessToken, {
       httpOnly: true,
       secure,
-      sameSite: 'lax',
+      sameSite,
       maxAge: 15 * 60 * 1000,
       path: '/',
     });
     res.cookie('crm_rt', refreshToken, {
       httpOnly: true,
       secure,
-      sameSite: 'lax',
+      sameSite,
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: '/',
     });
@@ -62,10 +69,11 @@ export class AuthController {
 
   private clearAuthCookies(res: Response) {
     const secure = this.config.get<string>('NODE_ENV') === 'production';
-    res.clearCookie('crm_at', { path: '/', sameSite: 'lax', secure, httpOnly: true });
+    const sameSite = this.cookieSameSite();
+    res.clearCookie('crm_at', { path: '/', sameSite, secure, httpOnly: true });
     res.clearCookie('crm_rt', {
       path: '/',
-      sameSite: 'lax',
+      sameSite,
       secure,
       httpOnly: true,
     });
