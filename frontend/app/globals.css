@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --motion-standard: 360ms;
+    --motion-slow: 560ms;
+    --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-mist text-ink antialiased;
+    background-image: radial-gradient(circle at top right, rgba(79, 140, 255, 0.08), transparent 40%);
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight text-ink;
+  }
+
+  :where(a, button, input, select, textarea, [role='button']):focus-visible {
+    outline: 2px solid rgba(79, 140, 255, 0.45);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(14px);
+  }
+
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: shimmer 1.8s infinite;
+    content: '';
+  }
+
+  .transition-premium {
+    transition-duration: var(--motion-standard);
+    transition-timing-function: var(--motion-ease);
+  }
+
+  .transition-slow {
+    transition-duration: var(--motion-slow);
+    transition-timing-function: var(--motion-ease);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

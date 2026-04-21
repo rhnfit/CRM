@@ -1,0 +1,459 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  DIRECTOR
+  MANAGER
+  SALES_HEAD
+  SUPPORT_HEAD
+  TEAM_LEADER
+  AGENT
+}
+
+enum Department {
+  SALES
+  SUPPORT
+}
+
+enum LeadSource {
+  WEBSITE
+  WHATSAPP
+  OFFLINE
+  CALL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  TRIAL
+  WON
+  COLD
+  FOLLOW_UP
+  CONVERTED
+  LOST
+}
+
+enum TicketType {
+  QUERY
+  ISSUE
+  CASE
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  ESCALATED
+  CLOSED
+}
+
+enum ActivityType {
+  CALL
+  WHATSAPP
+  NOTE
+  STATUS_CHANGE
+  PAYMENT
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+  IN_APP
+}
+
+enum NotificationType {
+  MISSED_FOLLOWUP
+  HIGH_LEAD_SCORE
+  NEW_ASSIGNMENT
+  SLA_BREACH
+  SYSTEM_ALERT
+}
+
+enum MessageType {
+  TEXT
+  TEMPLATE
+  MEDIA
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  RECEIVED
+}
+
+enum AutomationTriggerType {
+  NEW_LEAD
+  NO_RESPONSE
+  FOLLOWUP
+}
+
+enum AutomationRunStatus {
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+enum CallType {
+  INCOMING
+  OUTGOING
+  MISSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Team {
+  id          String  @id @default(cuid())
+  name        String
+  department  Department
+  managerId   String?
+  manager     User?   @relation("team_manager", fields: [managerId], references: [id])
+  members     User[]  @relation("team_members")
+  createdAt   DateTime @default(now())
+
+  pipelines   Pipeline[]
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  passwordHash  String
+  role          Role
+  department    Department
+  teamId        String?
+  managerId     String?
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  team          Team?       @relation("team_members", fields: [teamId], references: [id])
+  manager       User?       @relation("user_hierarchy", fields: [managerId], references: [id])
+  downline      User[]      @relation("user_hierarchy")
+  managedTeam   Team[]      @relation("team_manager")
+
+  @@index([department, isActive])
+  @@index([teamId, isActive])
+
+  assignedLeads   Lead[]      @relation("lead_assignee")
+  assignedTickets Ticket[]    @relation("ticket_assignee")
+  sales           Sale[]      @relation("sale_owner")
+  targets         Target[]
+  incentives      Incentive[]
+  calls           Call[]
+  activities      Activity[]
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
+  notifications   Notification[]
+}
+
+/// Sales Kanban: a pipeline belongs to a team optionally; org-wide default has teamId null.
+model Pipeline {
+  id          String       @id @default(cuid())
+  name        String
+  teamId      String?
+  department  Department?
+  isDefault   Boolean      @default(false)
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  team        Team?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  stages      PipelineStage[]
+  leads       Lead[]
+}
+
+/// Ordered columns; mapsToStatus keeps Lead.status in sync when a card is dropped.
+model PipelineStage {
+  id           String      @id @default(cuid())
+  pipelineId   String
+  name         String
+  sortOrder    Int
+  mapsToStatus LeadStatus?
+  color        String?     @db.VarChar(32)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  pipeline     Pipeline    @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  leads        Lead[]
+
+  @@index([pipelineId, sortOrder])
+}
+
+model Lead {
+  id              String      @id @default(cuid())
+  name            String
+  phone           String      @unique
+  source          LeadSource
+  campaign        String?
+  productInterest String?
+  leadScore       Int         @default(0)
+  status          LeadStatus  @default(NEW)
+  assignedTo      String
+  contactedAt     DateTime?
+  qualifiedAt     DateTime?
+  trialAt         DateTime?
+  convertedAt     DateTime?
+  lastContactedAt DateTime?
+  nextFollowupAt  DateTime?
+  engagementCount Int         @default(0)
+  lastActivityType ActivityType?
+  automationTags  String[]    @default([])
+  isDeleted       Boolean     @default(false)
+  /// Kanban column; optional for legacy rows until backfilled.
+  stageId         String?
+  kanbanOrder     Int         @default(0)
+  /// Denormalized for filtering boards by pipeline without joining stages.
+  pipelineId      String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  assignee        User        @relation("lead_assignee", fields: [assignedTo], references: [id])
+  pipeline        Pipeline?   @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+  stage           PipelineStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  sales           Sale[]
+  messages        WhatsappMessage[]
+  calls           Call[]
+  tickets         Ticket[]
+  activities      Activity[]
+  automationLogs  AutomationLog[]
+
+  @@index([phone])
+  @@index([assignedTo])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([assignedTo, status, phone])
+  /// Primary list pattern: scope + active + sort (newest first)
+  @@index([assignedTo, isDeleted, createdAt(sort: Desc)])
+  /// Filtered lists: status + scope + recency
+  @@index([assignedTo, isDeleted, status, createdAt(sort: Desc)])
+  @@index([assignedTo, isDeleted, source, createdAt(sort: Desc)])
+  @@index([pipelineId, stageId, assignedTo])
+  @@index([stageId, kanbanOrder])
+}
+
+model Sale {
+  id               String    @id @default(cuid())
+  leadId           String
+  userId           String
+  amount           Decimal   @db.Decimal(12, 2)
+  product          String
+  paymentStatus    String
+  orderSource      String
+  cac              Decimal?  @db.Decimal(10, 2)
+  /// S3 object key or https URL to payment proof (required for paid conversions)
+  paymentProofUrl  String?   @db.VarChar(4000)
+  /// Tax / transaction reference id (optional)
+  trnId            String?   @db.VarChar(128)
+  createdAt        DateTime  @default(now())
+
+  lead          Lead      @relation(fields: [leadId], references: [id])
+  user          User      @relation("sale_owner", fields: [userId], references: [id])
+}
+
+model Target {
+  id             String   @id @default(cuid())
+  userId         String
+  month          String
+  targetAmount   Decimal  @db.Decimal(12, 2)
+  achievedAmount Decimal  @db.Decimal(12, 2) @default(0)
+
+  user           User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month])
+}
+
+model Ticket {
+  id              String         @id @default(cuid())
+  customerName    String
+  phone           String
+  type            TicketType
+  priority        TicketPriority @default(NORMAL)
+  status          TicketStatus   @default(OPEN)
+  assignedTo      String
+  leadId          String?
+  slaDeadline     DateTime?
+  resolutionNotes String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  assignee        User           @relation("ticket_assignee", fields: [assignedTo], references: [id])
+  lead            Lead?          @relation(fields: [leadId], references: [id])
+  messages        WhatsappMessage[]
+  activities      Activity[]
+
+  @@index([phone])
+  @@index([assignedTo])
+  @@index([status])
+  @@index([leadId])
+  @@index([status, assignedTo])
+  @@index([assignedTo, createdAt(sort: Desc)])
+  @@index([assignedTo, status, createdAt(sort: Desc)])
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  referenceId String
+  leadId      String?
+  ticketId    String?
+  userId      String
+  metadata    Json
+  createdAt   DateTime     @default(now())
+
+  lead        Lead?        @relation(fields: [leadId], references: [id])
+  ticket      Ticket?      @relation(fields: [ticketId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+
+  @@index([referenceId])
+  @@index([type])
+  @@index([leadId, createdAt])
+}
+
+model WhatsappMessage {
+  id          String    @id @default(cuid())
+  externalId  String?   @unique
+  phone       String
+  body        String    @db.VarChar(2000)
+  direction   String
+  messageType MessageType @default(TEXT)
+  content     String?   @db.VarChar(4000)
+  status      MessageStatus @default(RECEIVED)
+  timestamp   DateTime  @default(now())
+  leadId      String?
+  ticketId    String?
+  createdAt   DateTime  @default(now())
+
+  lead        Lead?     @relation(fields: [leadId], references: [id])
+  ticket      Ticket?   @relation(fields: [ticketId], references: [id])
+
+  @@index([phone])
+  @@index([leadId])
+  @@index([ticketId])
+  @@index([leadId, timestamp])
+}
+
+model Call {
+  id           String    @id @default(cuid())
+  callId       String    @unique
+  userId       String
+  leadId       String?
+  callType     CallType
+  duration     Int       @default(0)
+  recordingUrl String?
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id])
+  lead         Lead?     @relation(fields: [leadId], references: [id])
+
+  @@index([userId])
+  @@index([leadId])
+}
+
+model Incentive {
+  id              String   @id @default(cuid())
+  userId          String
+  month           String
+  salesAmount     Decimal  @db.Decimal(12, 2)
+  incentiveAmount Decimal  @db.Decimal(12, 2)
+
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  entity     String
+  entityId   String
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId])
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  revokedAt  DateTime?
+
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, expiresAt])
+}
+
+model RoundRobinCounter {
+  id                String   @id @default(cuid())
+  teamId            String   @unique
+  lastAssignedIndex Int      @default(-1)
+  updatedAt         DateTime @updatedAt
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  userId    String
+  type      NotificationType
+  message   String              @db.VarChar(2000)
+  channel   NotificationChannel
+  isRead    Boolean             @default(false)
+  createdAt DateTime            @default(now())
+
+  user      User                @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead, createdAt])
+}
+
+model AutomationFlow {
+  id          String                @id @default(cuid())
+  name        String
+  triggerType AutomationTriggerType
+  isActive    Boolean               @default(true)
+  steps       Json
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+}
+
+model AutomationLog {
+  id        String              @id @default(cuid())
+  type      String
+  entityId  String
+  status    AutomationRunStatus
+  runAt     DateTime            @default(now())
+  metadata  Json?
+  leadId    String?
+
+  lead      Lead?               @relation(fields: [leadId], references: [id])
+
+  @@index([entityId, runAt])
+}
+
+model WhatsappTemplate {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  language   String   @default("en")
+  body       String   @db.VarChar(2000)
+  variables  Json?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

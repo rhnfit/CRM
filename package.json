@@ -1,0 +1,7 @@
+{
+  "name": "rhn-crm",
+  "private": true,
+  "scripts": {
+    "verify": "npm run verify --prefix backend && npm run verify --prefix frontend"
+  }
+}

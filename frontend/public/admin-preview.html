@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RHN CRM — Admin panel (static preview)</title>
+    <style>
+      :root {
+        --brand: #15803d;
+        --brand-muted: #dcfce7;
+        --bg: #f8fafc;
+        --card: #fff;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+      aside {
+        width: 14rem;
+        flex-shrink: 0;
+        background: var(--card);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+      }
+      .brand {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .brand small {
+        color: var(--brand);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.65rem;
+      }
+      .brand h1 {
+        margin: 0.25rem 0 0;
+        font-size: 1rem;
+      }
+      .brand p {
+        margin: 0.25rem 0 0;
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+      nav {
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      nav a {
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #334155;
+        text-decoration: none;
+      }
+      nav a:hover {
+        background: #f8fafc;
+      }
+      nav a.active {
+        background: var(--brand-muted);
+        color: var(--brand);
+      }
+      main {
+        flex: 1;
+        padding: 2rem;
+      }
+      .banner {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+      }
+      .banner a {
+        color: var(--brand);
+        font-weight: 600;
+      }
+      h2 {
+        margin: 0 0 0.5rem;
+        font-size: 1.5rem;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 2rem;
+        max-width: 40rem;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+        max-width: 56rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+      }
+      .card span {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .card strong {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 1.75rem;
+        font-variant-numeric: tabular-nums;
+      }
+      table {
+        width: 100%;
+        max-width: 56rem;
+        margin-top: 2rem;
+        border-collapse: collapse;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        font-size: 0.875rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        background: #f8fafc;
+        color: var(--muted);
+        font-weight: 500;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      .pill {
+        background: var(--brand-muted);
+        color: var(--brand);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <div class="brand">
+          <small>Admin</small>
+          <h1>Preview User</h1>
+          <p>DIRECTOR · SALES</p>
+        </div>
+        <nav>
+          <a class="active" href="#">Overview</a>
+          <a href="#">Users</a>
+          <a href="#">Teams</a>
+        </nav>
+      </aside>
+      <main>
+        <div class="banner">
+          This is a <strong>static preview</strong> (no database). For the real admin app with login, start
+          PostgreSQL, run migrations + seed, then open
+          <a href="/login">/login</a> and <a href="/admin">/admin</a>.
+        </div>
+        <h2>Overview</h2>
+        <p class="sub">Counts respect your role in the live app. Numbers below are placeholders.</p>
+        <div class="grid">
+          <div class="card"><span>Users (in scope)</span><strong>12</strong></div>
+          <div class="card"><span>Teams</span><strong>3</strong></div>
+          <div class="card"><span>Leads</span><strong>48</strong></div>
+          <div class="card"><span>Tickets</span><strong>9</strong></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Dept</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Priya Nair</td>
+              <td>priya@example.com</td>
+              <td><span class="pill">AGENT</span></td>
+              <td>SALES</td>
+            </tr>
+            <tr>
+              <td>Rahul Mehta</td>
+              <td>rahul@example.com</td>
+              <td><span class="pill">TEAM_LEADER</span></td>
+              <td>SALES</td>
+            </tr>
+          </tbody>
+        </table>
+      </main>
+    </div>
+  </body>
+</html>

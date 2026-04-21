@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets (never commit real env files)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+# Keep templates tracked
+!.env.example
+!**/.env.example
+
+# Build outputs
+backend/dist/
+frontend/.next/
+frontend/out/
+
+# Logs & caches
+*.log
+npm-debug.log*
+.turbo
+.cache
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.tsbuildinfo
